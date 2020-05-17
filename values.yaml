@@ -1,0 +1,83 @@
+nameOverride: "dev-demo-ingress"
+fullnameOverride: "dev-demo-ingress"
+
+# Scalability and Stability
+replicaCount: 1
+maxReplicaCount: 2
+
+#Scaling. 
+scalingMetrics:
+  targetCPUUtilizationPercentage: 30
+
+image:
+  repository: nginx
+  tag: stable
+  pullPolicy: IfNotPresent
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  timeoutSeconds: 2
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+  scheme: HTTP
+  path: /
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  timeoutSeconds: 2
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+  scheme: HTTP
+  path: /
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  paths: []
+  hosts:
+    - demo.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# Resources requirements
+resources:
+  requests:
+    cpu: 500m
+
+nodeSelector: {}
+
+tolerations: []
+
+podSecurityPolicy:
+  enabled: false
+
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - store
+          topologyKey: "kubernetes.io/hostname"
+
+maxUnavailablePods: 25%
+
+env:
+ nginx_url: "https://securrency.com/"
