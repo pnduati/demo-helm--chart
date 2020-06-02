@@ -4,9 +4,11 @@ kind: PodSecurityPolicy
 metadata:
   name: {{ template "demo.fullname" . }}
   labels:
-    {{- include "demo.labels" . | nindent 4 }}
-  annotations:
+    app: {{ template "demo.name" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
 {{- if .Values.podSecurityPolicy.annotations }}
+  annotations:
 {{ toYaml .Values.podSecurityPolicy.annotations | indent 4 }}
 {{- end }}
 spec:
@@ -15,10 +17,12 @@ spec:
   requiredDropCapabilities:
     - ALL
   volumes:
-    - 'persistentVolumeClaim'
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
     - 'secret'
-  allowedHostPaths:
-    - pathPrefix: {{ .Values.persistentVolume.mountPath }}
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
   hostNetwork: false
   hostPID: false
   hostIPC: false
@@ -39,4 +43,14 @@ spec:
       - min: 1
         max: 65535
   readOnlyRootFilesystem: true
+  # disallow privileged pods
+  privileged: false
+  hostIPC: false                                    # disallow sharing the host IPC namespace
+  hostNetwork: false                                # disallow host networking
+  hostPID: false                                    # disallow sharing the host process ID namespace
+  hostPorts:                                        # disallow low host ports (this seems to only apply to eth0 on EKS)
+    - max: 65535
+      min: 1025
+  requiredDropCapabilities:
+    - ALL
 {{- end }}

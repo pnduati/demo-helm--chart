@@ -61,7 +61,7 @@ nodeSelector: {}
 tolerations: []
 
 podSecurityPolicy:
-  enabled: false
+  enabled: true
 
 
 affinity:
